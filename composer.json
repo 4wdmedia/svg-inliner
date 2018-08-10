@@ -1,0 +1,13 @@
+{
+    "name": "vierwd/svg-inliner",
+    "description": "Utility functions to inline SVGs in PHP Projects",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Robert Vock",
+            "email": "robert.vock@4wdmedia.de"
+        }
+    ],
+    "require": {}
+}
