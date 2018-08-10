@@ -3,16 +3,35 @@
     "description": "Utility functions to inline SVGs in PHP Projects",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "SVG",
+        "HTML",
+        "inline"
+    ],
+    "support": {
+        "issues": "https://github.com/4wdmedia/svg-inliner/issues"
+    },
     "authors": [
         {
             "name": "Robert Vock",
             "email": "robert.vock@4wdmedia.de"
         }
     ],
-    "require": {}
+    "require": {
+        "php": ">=5.4.0",
+        "phpunit/phpunit": "^6.5",
+        "friendsofphp/php-cs-fixer": "^2.12",
+        "vierwd/coding-standard": "^1.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4"
+    },
     "autoload": {
         "psr-4": {
             "Vierwd\\SvgInliner\\": "src"
+        }
+    },
+     "autoload-dev": {
+        "psr-4": {
+            "Vierwd\\SvgInliner\\Tests\\": "tests"
         }
     }
 }
