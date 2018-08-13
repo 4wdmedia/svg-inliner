@@ -1,0 +1,30 @@
+language: php
+
+php:
+  - 5.5
+  - 7.0
+  - 7.2
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+before_install:
+  - phpenv config-rm xdebug.ini
+  - composer self-update
+  - composer --version
+
+install:
+  - if [[ "$PHP" != "7.2" ]]; then composer remove --dev "friendsofphp/php-cs-fixer" "vierwd/coding-standard" "dealerdirect/phpcodesniffer-composer-installer"; fi
+  - composer install
+
+script:
+  - vendor/bin/phpunit
+
+  - >
+    echo "Running php lint";
+    find src tests -name \*.php | xargs grep --files-without-match --regexp '<\?php // PHP\s*7\.[3-9]' | xargs -I % php -d display_errors=stderr -l % > /dev/null ;
+
+  - if [[ "$PHP" == "7.2" ]]; then vendor/bin/phpcs --runtime-set ignore_warnings_on_exit 1 --standard=vendor/vierwd/coding-standard/ForwardMedia src tests; fi

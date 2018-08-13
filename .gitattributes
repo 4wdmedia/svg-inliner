@@ -1,0 +1,3 @@
+tests/Fixtures/** linguist-vendored
+tests/ export-ignore
+phpunit.xml export-ignore

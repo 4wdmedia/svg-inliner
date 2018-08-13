@@ -54,6 +54,13 @@ class SvgInliner {
 		return $this->fullSvg->saveXml($this->fullSvg->documentElement, LIBXML_NOEMPTYTAG);
 	}
 
+	/**
+	 * render a single SVG file. If the file has the same identifier as another SVG, it will not be loaded from
+	 * disk again
+	 *
+	 * @param string $fileName path to file
+	 * @param array $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
+	 */
 	public function renderSVGFile($fileName, array $options = []) {
 		if (!file_exists($fileName)) {
 			return '';

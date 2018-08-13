@@ -18,8 +18,10 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "phpunit/phpunit": "^6.5",
+        "php": ">=5.5.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8 | ^5.7 | ^6.5",
         "friendsofphp/php-cs-fixer": "^2.12",
         "vierwd/coding-standard": "^1.0",
         "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4"
@@ -33,5 +35,11 @@
         "psr-4": {
             "Vierwd\\SvgInliner\\Tests\\": "tests"
         }
+    },
+    "scripts": {
+        "test": [
+            "vendor/bin/phpunit",
+            "if [[ -f vendor/bin/phpcs ]]; then vendor/bin/phpcs --runtime-set ignore_warnings_on_exit 1 --standard=vendor/vierwd/coding-standard/ForwardMedia src tests; fi"
+        ]
     }
 }
