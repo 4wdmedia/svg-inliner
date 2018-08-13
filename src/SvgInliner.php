@@ -114,6 +114,10 @@ class SvgInliner {
 		$height = isset($options['height']) ? (int)$options['height'] : 0;
 		$class = isset($options['class']) ? (string)$options['class'] : '';
 
+		if (!$excludeFromConcatenation) {
+			$this->fullSvg->documentElement->appendChild($symbol);
+		}
+
 		$document = new DOMDocument;
 		$svg = $document->createElementNs('http://www.w3.org/2000/svg', 'svg');
 		$document->appendChild($svg);
@@ -123,18 +127,18 @@ class SvgInliner {
 			$use->setAttribute('xlink:href', '#' . $identifier);
 			$svg->appendChild($use);
 		} else {
-			$classes = explode(' ', 'svg ' . $identifier . ' ' . $class);
-			$classes = array_map('trim', $classes);
-			$classes = array_filter($classes);
-			$classes = array_unique($classes);
-			$svg->setAttribute('class', implode(' ', $classes));
-
 			// use the element directly
 			foreach ($symbol->childNodes as $child) {
 				$child = $document->importNode($child, true);
 				$svg->appendChild($child);
 			}
 		}
+
+		$classes = explode(' ', 'svg ' . $identifier . ' ' . $class);
+		$classes = array_map('trim', $classes);
+		$classes = array_filter($classes);
+		$classes = array_unique($classes);
+		$svg->setAttribute('class', implode(' ', $classes));
 
 		if ($width || $symbol->hasAttribute('width')) {
 			$svg->setAttribute('width', $width ?: $symbol->getAttribute('width'));
@@ -213,8 +217,6 @@ class SvgInliner {
 			$child = $this->fullSvg->importNode($child, true);
 			$symbol->appendChild($child);
 		}
-
-		$this->fullSvg->documentElement->appendChild($symbol);
 
 		$this->usedSvgs[$identifier] = $symbol;
 
