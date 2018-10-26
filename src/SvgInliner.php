@@ -134,7 +134,7 @@ class SvgInliner {
 			}
 		}
 
-		$classes = explode(' ', 'svg ' . $identifier . ' ' . $class);
+		$classes = explode(' ', $class . ' ' . $symbol->getAttribute('class'));
 		$classes = array_map('trim', $classes);
 		$classes = array_filter($classes);
 		$classes = array_unique($classes);
