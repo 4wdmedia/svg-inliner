@@ -6,9 +6,6 @@ use DOMDocument;
 use DOMXPath;
 use Exception;
 
-/**
- * @author Robert Vock <robert.vock@4wdmedia.de>
- */
 class SvgInliner {
 
 	/**
@@ -36,7 +33,7 @@ class SvgInliner {
 	public function __construct(array $defaultOptions = []) {
 		$this->defaultOptions = $defaultOptions;
 
-		$this->fullSvg = new DOMDocument;
+		$this->fullSvg = new DOMDocument();
 		$svg = $this->fullSvg->createElementNs('http://www.w3.org/2000/svg', 'svg');
 		$svg->setAttribute('hidden', 'hidden');
 		$this->fullSvg->appendChild($svg);
@@ -87,7 +84,6 @@ class SvgInliner {
 	 *
 	 * @param string $content SVG content
 	 * @return array $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
-	 * @throws Exception if the SVG is invalid
 	 */
 	public function renderSVG($content, array $options = []) {
 		$options = $options + $this->defaultOptions;
@@ -118,7 +114,7 @@ class SvgInliner {
 			$this->fullSvg->documentElement->appendChild($symbol);
 		}
 
-		$document = new DOMDocument;
+		$document = new DOMDocument();
 		$svg = $document->createElementNs('http://www.w3.org/2000/svg', 'svg');
 		$document->appendChild($svg);
 
@@ -166,12 +162,11 @@ class SvgInliner {
 	/**
 	 * @param string $content
 	 * @param array $options
-	 * @throws Exception if the SVG is invalid
 	 */
 	protected function processSVG($content, array $options) {
 		$identifier = $options['identifier'];
 
-		$document = new DOMDocument;
+		$document = new DOMDocument();
 
 		if (!@$document->loadXml($content)) {
 			throw new Exception('Could not load SVG: ' . $identifier, 1533914743);
