@@ -128,6 +128,13 @@ class SvgInliner {
 				$child = $document->importNode($child, true);
 				$svg->appendChild($child);
 			}
+
+			foreach ($symbol->attributes as $name => $value) {
+				// copy attributes of SVG element to symbol element
+				if ($name !== 'xmlns') {
+					$svg->setAttribute($name, $value->nodeValue);
+				}
+			}
 		}
 
 		$classes = explode(' ', $class . ' ' . $symbol->getAttribute('class'));
