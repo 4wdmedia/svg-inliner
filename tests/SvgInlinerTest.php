@@ -7,9 +7,6 @@ use GlobIterator;
 use PHPUnit\Framework\TestCase;
 use Vierwd\SvgInliner\SvgInliner;
 
-/**
- * @author Robert Vock <robert.vock@4wdmedia.de>
- */
 class SvgInlinerTest extends TestCase {
 
 	/**
@@ -70,7 +67,7 @@ class SvgInlinerTest extends TestCase {
 		}
 
 		$svgWithId = '<svg xmlns="http://www.w3.org/2000/svg"><g id="test"></svg>';
-		$processedSvg = $svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase']);
-		$processedSvg = $svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase2']);
+		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase']);
+		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase2']);
 	}
 }
