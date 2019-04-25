@@ -66,4 +66,63 @@ class SvgInlinerTest extends TestCase {
 		$this->expectException(Exception::class);
 		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase2']);
 	}
+
+	/**
+	 * test inclusion of SVG as external file (with use-tag)
+	 *
+	 * @test
+	 */
+	public function testExternal() {
+		$svgInliner = new SvgInliner([
+			'excludeFromConcatenation' => true,
+		]);
+
+		$externalSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><g id="main"/></svg>';
+		$expected = '<svg class="svg testcase" viewBox="0 0 50 50"><use xlink:href="/static/test.svg?cbd1ac4a#main"></use></svg>';
+		$processedSvg = $svgInliner->renderSVG($externalSvg, [
+			'identifier' => 'testcase',
+			'external' => true,
+			'url' => '/static/test.svg',
+		]);
+		$this->assertEquals($expected, $processedSvg);
+	}
+
+	/**
+	 * test inclusion of SVG as external file (with use-tag)
+	 *
+	 * @test
+	 */
+	public function testExternalWithCustomUrl() {
+		$svgInliner = new SvgInliner([
+			'excludeFromConcatenation' => true,
+		]);
+
+		$externalSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><g id="main"/><g id="second-main" /></svg>';
+		$expected = '<svg class="svg testcase" viewBox="0 0 50 50"><use xlink:href="/static/test.svg?cache-buster#second-main"></use></svg>';
+		$processedSvg = $svgInliner->renderSVG($externalSvg, [
+			'identifier' => 'testcase',
+			'external' => true,
+			'url' => '/static/test.svg?cache-buster#second-main',
+		]);
+		$this->assertEquals($expected, $processedSvg);
+	}
+
+	/**
+	 * test inclusion of SVG as external file (with use-tag)
+	 *
+	 * @test
+	 */
+	public function testExternalWithoutID() {
+		$svgInliner = new SvgInliner([
+			'excludeFromConcatenation' => true,
+		]);
+
+		$externalSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><g /></svg>';
+		$this->expectException(Exception::class);
+		$svgInliner->renderSVG($externalSvg, [
+			'identifier' => 'testcase',
+			'external' => true,
+			'url' => '/static/test.svg',
+		]);
+	}
 }

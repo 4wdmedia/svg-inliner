@@ -39,3 +39,34 @@ $output = $svgInliner->renderSVGFile($pathToSvgFile, ['excludeFromConcatenation'
 - `width`: Width attribute for SVG. Defaults to none and will leave attribute as-is.
 - `height`: Height attribute for SVG. Defaults to none and will leave attribute as-is.
 - `class`: Additional classes for SVG-tag. By default `.svg` and `.svg-identifier` are added.
+- `external`: Embed the SVG as external `<use>`-tag.
+- `url`: URL for the `external` SVG
+
+## External SVGs
+
+It is possible to include SVGs as links to external SVG files:
+
+```php
+$svgInliner = new SvgInliner($defaultOptions);
+
+// render a single SVG file and output a <use>-tag with an external file
+$output = $svgInliner->renderSVGFile($pathToSvgFile, [
+	'external' => true,
+	'url' => '/static/test.svg',
+]);
+```
+
+**Output:**
+
+```xml
+<svg width="50" height="50" viewBox="0 0 50 50">
+	<use xlink:href="/static/test.svg?912ec803#main" width="50" height="50" />
+</svg>
+```
+
+This allows to style *some* parts of the SVG using CSS, but allows for the SVG to still be cachable. You can use `fill` and `stroke` for all parts of the SVG which do *not* have fill or stroke set. You can use `color` to set the color which is used as `currentColor` within the SVG.
+
+**Attention:**
+
+- IE 11 does not support external SVGs in `<use>`-tags. You need to use a polyfill like [svgxuse](https://github.com/Keyamoon/svgxuse), if you need IE 11 support.
+- The SVG needs a tag with an `id` attribute. If the `url` option does not contain a `#hash`, SvgInliner automatically uses the first ID it finds within the SVG. If no ID is found, an exception is thrown.

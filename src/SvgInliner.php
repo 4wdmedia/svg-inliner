@@ -101,17 +101,18 @@ class SvgInliner {
 	}
 
 	/**
-	 * @param DOMDocument $symbol
+	 * @param DOMNode $symbol
 	 * @param array $options
 	 */
-	protected function renderSymbol($symbol, array $options) {
+	protected function renderSymbol(DOMNode $symbol, array $options) {
 		$identifier = $options['identifier'];
 		$excludeFromConcatenation = !empty($options['excludeFromConcatenation']);
+		$external = !empty($options['external']);
 		$width = isset($options['width']) ? (int)$options['width'] : 0;
 		$height = isset($options['height']) ? (int)$options['height'] : 0;
 		$class = isset($options['class']) ? (string)$options['class'] : '';
 
-		if (!$excludeFromConcatenation) {
+		if (!$excludeFromConcatenation && !$external) {
 			$this->fullSvg->documentElement->appendChild($symbol);
 		}
 
@@ -119,7 +120,30 @@ class SvgInliner {
 		$svg = $document->createElementNs('http://www.w3.org/2000/svg', 'svg');
 		$document->appendChild($svg);
 
-		if (!$excludeFromConcatenation) {
+		if ($external) {
+			if (!isset($options['url'])) {
+				throw new \Exception('No URL option set. When using the `external` option, you need to supply an URL option as well.', 1556090908);
+			}
+			$url = $options['url'];
+			$urlParts = parse_url($url);
+			if (empty($urlParts['fragment'])) {
+				// get the fragment
+				$XPath = new DOMXPath($symbol->ownerDocument);
+				$ids = $XPath->query('./*[@id]/@id', $symbol);
+				if (!$ids->length) {
+					throw new \Exception('No fragment set. When using the `external` option, either provide a URL fragment or set an ID within the SVG', 1556092343);
+				}
+				$urlParts['fragment'] = (string)$ids->item(0)->nodeValue;
+			}
+			if (empty($urlParts['query'])) {
+				// generate a cache buster
+				$urlParts['query'] = substr(md5($symbol->ownerDocument->saveXML($symbol)), 0, 8);
+			}
+			$url = $this->buildUrl($urlParts);
+			$use = $document->createElement('use');
+			$use->setAttribute('xlink:href', $url);
+			$svg->appendChild($use);
+		} else if (!$excludeFromConcatenation) {
 			$use = $document->createElement('use');
 			$use->setAttribute('xlink:href', '#' . $identifier);
 			$svg->appendChild($use);
@@ -236,5 +260,19 @@ class SvgInliner {
 
 			$this->usedIDs[$id->nodeValue] = $identifier;
 		}
+	}
+
+	protected function buildUrl(array $urlParts) {
+		// https://www.php.net/manual/en/function.parse-url.php#106731
+		$scheme   = isset($urlParts['scheme']) ? $urlParts['scheme'] . '://' : '';
+		$host     = isset($urlParts['host']) ? $urlParts['host'] : '';
+		$port     = isset($urlParts['port']) ? ':' . $urlParts['port'] : '';
+		$user     = isset($urlParts['user']) ? $urlParts['user'] : '';
+		$pass     = isset($urlParts['pass']) ? ':' . $urlParts['pass'] : '';
+		$pass     = $user || $pass ? "$pass@" : '';
+		$path     = isset($urlParts['path']) ? $urlParts['path'] : '';
+		$query    = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
+		$fragment = isset($urlParts['fragment']) ? '#' . $urlParts['fragment'] : '';
+		return "$scheme$user$pass$host$port$path$query$fragment";
 	}
 }
