@@ -60,14 +60,10 @@ class SvgInlinerTest extends TestCase {
 			'excludeFromConcatenation' => true,
 		]);
 
-		if (method_exists($this, 'expectException')) {
-			$this->expectException(Exception::class);
-		} else {
-			$this->setExpectedException(Exception::class);
-		}
-
-		$svgWithId = '<svg xmlns="http://www.w3.org/2000/svg"><g id="test"></svg>';
+		$svgWithId = '<svg xmlns="http://www.w3.org/2000/svg"><g id="test" /></svg>';
 		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase']);
+
+		$this->expectException(Exception::class);
 		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase2']);
 	}
 }

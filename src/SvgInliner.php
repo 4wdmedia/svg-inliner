@@ -3,6 +3,7 @@
 namespace Vierwd\SvgInliner;
 
 use DOMDocument;
+use DOMNode;
 use DOMXPath;
 use Exception;
 
@@ -179,7 +180,7 @@ class SvgInliner {
 			throw new Exception('Could not load SVG: ' . $identifier, 1533914743);
 		}
 
-		if (!empty($options['ignoreDuplicateIds'])) {
+		if (empty($options['ignoreDuplicateIds'])) {
 			$this->checkForDuplicateId($identifier, $document->documentElement);
 		}
 
@@ -225,7 +226,7 @@ class SvgInliner {
 		return $symbol;
 	}
 
-	protected function checkForDuplicateId($identifier, $contextNode) {
+	protected function checkForDuplicateId($identifier, DOMNode $contextNode) {
 		$XPath = new DOMXPath($contextNode->ownerDocument);
 		$ids = $XPath->query('.//*[@id]/@id', $contextNode);
 		foreach ($ids as $id) {
