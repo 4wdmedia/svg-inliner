@@ -17,11 +17,13 @@ class SvgInliner {
 	/**
 	 * list of all identifiers of used SVGs.
 	 * The identifier is the filename as lowercase without special characters.
+	 * @var array
 	 */
 	protected $usedSvgs = [];
 
 	/**
 	 * list of all id-attributes used in all SVGs
+	 * @var array
 	 */
 	protected $usedIDs = [];
 
@@ -108,9 +110,6 @@ class SvgInliner {
 		$identifier = $options['identifier'];
 		$excludeFromConcatenation = !empty($options['excludeFromConcatenation']);
 		$external = !empty($options['external']);
-		$width = isset($options['width']) ? (int)$options['width'] : 0;
-		$height = isset($options['height']) ? (int)$options['height'] : 0;
-		$class = isset($options['class']) ? (string)$options['class'] : '';
 
 		if (!$excludeFromConcatenation && !$external) {
 			$this->fullSvg->documentElement->appendChild($symbol);
@@ -162,24 +161,7 @@ class SvgInliner {
 			}
 		}
 
-		$classes = explode(' ', $class . ' ' . $symbol->getAttribute('class'));
-		$classes = array_map('trim', $classes);
-		$classes = array_filter($classes);
-		$classes = array_unique($classes);
-		$svg->setAttribute('class', implode(' ', $classes));
-
-		if ($width || $symbol->hasAttribute('width')) {
-			$svg->setAttribute('width', $width ?: $symbol->getAttribute('width'));
-		}
-		if ($height || $symbol->hasAttribute('height')) {
-			$svg->setAttribute('height', $height ?: $symbol->getAttribute('height'));
-		}
-		if ($symbol->hasAttribute('viewBox')) {
-			$svg->setAttribute('viewBox', $symbol->getAttribute('viewBox'));
-		}
-		if ($symbol->hasAttribute('preserveAspectRatio')) {
-			$svg->setAttribute('preserveAspectRatio', $symbol->getAttribute('preserveAspectRatio'));
-		}
+		$this->setAttributes($symbol, $svg, $options);
 
 		// make sure there are no short-tags
 		$value = $document->saveXml($document->documentElement, LIBXML_NOEMPTYTAG);
@@ -189,6 +171,34 @@ class SvgInliner {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * copy or set attributes from one SVG onto another
+	 */
+	protected function setAttributes(DOMNode $from, DOMNode $to, array $options) {
+		$width = isset($options['width']) ? (int)$options['width'] : 0;
+		$height = isset($options['height']) ? (int)$options['height'] : 0;
+		$class = isset($options['class']) ? (string)$options['class'] : '';
+
+		$classes = explode(' ', $class . ' ' . $from->getAttribute('class'));
+		$classes = array_map('trim', $classes);
+		$classes = array_filter($classes);
+		$classes = array_unique($classes);
+		$to->setAttribute('class', implode(' ', $classes));
+
+		if ($width || $from->hasAttribute('width')) {
+			$to->setAttribute('width', $width ?: $from->getAttribute('width'));
+		}
+		if ($height || $from->hasAttribute('height')) {
+			$to->setAttribute('height', $height ?: $from->getAttribute('height'));
+		}
+		if ($from->hasAttribute('viewBox')) {
+			$to->setAttribute('viewBox', $from->getAttribute('viewBox'));
+		}
+		if ($from->hasAttribute('preserveAspectRatio')) {
+			$to->setAttribute('preserveAspectRatio', $from->getAttribute('preserveAspectRatio'));
+		}
 	}
 
 	/**
