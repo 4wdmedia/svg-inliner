@@ -5,6 +5,7 @@ namespace Vierwd\SvgInliner\Tests;
 use Exception;
 use GlobIterator;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Error\Warning;
 use Vierwd\SvgInliner\SvgInliner;
 
 class SvgInlinerTest extends TestCase {
@@ -63,8 +64,25 @@ class SvgInlinerTest extends TestCase {
 		$svgWithId = '<svg xmlns="http://www.w3.org/2000/svg"><g id="test" /></svg>';
 		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase']);
 
-		$this->expectException(Exception::class);
+		$this->expectException(Warning::class);
 		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase2']);
+	}
+
+	/**
+	 * test if there is an exception when the same file is rendered twice
+	 *
+	 * @test
+	 */
+	public function testDuplicateIdsWithSameFile() {
+		$svgInliner = new SvgInliner([
+			'excludeFromConcatenation' => true,
+		]);
+
+		$svgWithId = '<svg xmlns="http://www.w3.org/2000/svg"><g id="test" /></svg>';
+		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase']);
+
+		$this->expectException(Warning::class);
+		$svgInliner->renderSVG($svgWithId, ['identifier' => 'testcase']);
 	}
 
 	/**

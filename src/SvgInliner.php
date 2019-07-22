@@ -121,6 +121,10 @@ class SvgInliner {
 	protected function renderSymbol(DOMNode $symbol, array $options) {
 		$identifier = $options['identifier'];
 
+		if (!$options['ignoreDuplicateIds']) {
+			$this->checkForDuplicateId($identifier, $symbol);
+		}
+
 		if (!$options['excludeFromConcatenation'] && !$options['external']) {
 			$this->fullSvg->documentElement->appendChild($symbol);
 		}
@@ -224,10 +228,6 @@ class SvgInliner {
 			throw new Exception('Could not load SVG: ' . $identifier, 1533914743);
 		}
 
-		if (!$options['ignoreDuplicateIds']) {
-			$this->checkForDuplicateId($identifier, $document->documentElement);
-		}
-
 		// convert fill="transparent" to fill="none"
 		$XPath = new DOMXPath($document);
 		$transparentFill = $XPath->query('//*[@fill="transparent"]');
@@ -274,7 +274,7 @@ class SvgInliner {
 		$ids = $XPath->query('.//*[@id]/@id', $contextNode);
 		foreach ($ids as $id) {
 			if (isset($this->usedIDs[$id->nodeValue])) {
-				throw new Exception('Duplicate ID within embedded SVG ' . $identifier . '. If this is intentional, add ignoreDuplicateIds=1', 1475853018);
+				trigger_error('Duplicate ID within embedded SVG ' . $identifier . '. If this is intentional, add ignoreDuplicateIds=1', E_USER_WARNING);
 			}
 
 			$this->usedIDs[$id->nodeValue] = $identifier;
