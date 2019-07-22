@@ -57,6 +57,12 @@ class SvgInlinerTest extends TestCase {
 	 * @test
 	 */
 	public function testDuplicateIds() {
+		if (!class_exists(Warning::class)) {
+			// older PHPUnit
+			$this->markTestSkipped('Warning can not be catched');
+			return;
+		}
+
 		$svgInliner = new SvgInliner([
 			'excludeFromConcatenation' => true,
 		]);
@@ -74,6 +80,12 @@ class SvgInlinerTest extends TestCase {
 	 * @test
 	 */
 	public function testDuplicateIdsWithSameFile() {
+		if (!class_exists(Warning::class)) {
+			// older PHPUnit
+			$this->markTestSkipped('Warning can not be catched');
+			return;
+		}
+
 		$svgInliner = new SvgInliner([
 			'excludeFromConcatenation' => true,
 		]);
