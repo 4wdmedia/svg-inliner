@@ -66,7 +66,7 @@ class SvgInliner {
 			return '';
 		}
 
-		$options = $options + $this->defaultOptions;
+		$options = $this->processOptions($options);
 
 		if (!isset($options['identifier'])) {
 			$options['identifier'] = preg_replace('/\W+/u', '-', strtolower(pathinfo($fileName, PATHINFO_FILENAME)));
@@ -89,7 +89,7 @@ class SvgInliner {
 	 * @return array $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
 	 */
 	public function renderSVG($content, array $options = []) {
-		$options = $options + $this->defaultOptions;
+		$options = $this->processOptions($options);
 
 		$identifier = isset($options['identifier']) ? (string)$options['identifier'] : md5($content);
 
@@ -102,16 +102,26 @@ class SvgInliner {
 		return $this->renderSymbol($symbol, $options);
 	}
 
+	protected function processOptions(array $options = []) {
+		$options = $options + $this->defaultOptions;
+
+		// ensure some options are booleans
+		$options['external'] = !empty($options['external']);
+		$options['excludeFromConcatenation'] = !empty($options['excludeFromConcatenation']);
+		$options['ignoreDuplicateIds'] = !empty($options['ignoreDuplicateIds']) || $options['external'];
+		$options['removeComments'] = isset($options['removeComments']) ? (bool)$options['removeComments'] : true;
+
+		return $options;
+	}
+
 	/**
 	 * @param DOMNode $symbol
 	 * @param array $options
 	 */
 	protected function renderSymbol(DOMNode $symbol, array $options) {
 		$identifier = $options['identifier'];
-		$excludeFromConcatenation = !empty($options['excludeFromConcatenation']);
-		$external = !empty($options['external']);
 
-		if (!$excludeFromConcatenation && !$external) {
+		if (!$options['excludeFromConcatenation'] && !$options['external']) {
 			$this->fullSvg->documentElement->appendChild($symbol);
 		}
 
@@ -119,7 +129,7 @@ class SvgInliner {
 		$svg = $document->createElementNs('http://www.w3.org/2000/svg', 'svg');
 		$document->appendChild($svg);
 
-		if ($external) {
+		if ($options['external']) {
 			if (!isset($options['url'])) {
 				throw new \Exception('No URL option set. When using the `external` option, you need to supply an URL option as well.', 1556090908);
 			}
@@ -142,7 +152,7 @@ class SvgInliner {
 			$use = $document->createElement('use');
 			$use->setAttribute('xlink:href', $url);
 			$svg->appendChild($use);
-		} else if (!$excludeFromConcatenation) {
+		} else if (!$options['excludeFromConcatenation']) {
 			$use = $document->createElement('use');
 			$use->setAttribute('xlink:href', '#' . $identifier);
 			$svg->appendChild($use);
@@ -214,7 +224,7 @@ class SvgInliner {
 			throw new Exception('Could not load SVG: ' . $identifier, 1533914743);
 		}
 
-		if (empty($options['ignoreDuplicateIds'])) {
+		if (!$options['ignoreDuplicateIds']) {
 			$this->checkForDuplicateId($identifier, $document->documentElement);
 		}
 
@@ -226,8 +236,7 @@ class SvgInliner {
 		}
 
 		// Remove comments within SVG
-		$removeComments = isset($options['removeComments']) ? (bool)$options['removeComments'] : true;
-		if ($removeComments) {
+		if ($options['removeComments']) {
 			$XPath = new DOMXPath($document);
 			$comments = $XPath->query('//comment()');
 			foreach ($comments as $comment) {
