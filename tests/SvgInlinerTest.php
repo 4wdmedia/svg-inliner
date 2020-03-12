@@ -108,7 +108,7 @@ class SvgInlinerTest extends TestCase {
 		]);
 
 		$externalSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><g id="main"/></svg>';
-		$expected = '<svg class="svg" viewBox="0 0 50 50"><use xlink:href="/static/test.svg?cbd1ac4a#main"></use></svg>';
+		$expected = '<svg class="svg" viewBox="0 0 50 50"><use xlink:href="/static/test.svg?db12e4dd#main"></use></svg>';
 		$processedSvg = $svgInliner->renderSVG($externalSvg, [
 			'identifier' => 'testcase',
 			'external' => true,
