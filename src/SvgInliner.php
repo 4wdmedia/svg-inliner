@@ -244,6 +244,13 @@ class SvgInliner {
 			}
 		}
 
+		// always add "svg" class to the root element
+		if ($document->documentElement->hasAttribute('class')) {
+			$document->documentElement->setAttribute('class', $document->documentElement->getAttribute('class') . ' svg');
+		} else {
+			$document->documentElement->setAttribute('class', 'svg');
+		}
+
 		$symbol = $this->fullSvg->createElement('symbol');
 		foreach ($document->documentElement->attributes as $name => $value) {
 			// copy attributes of SVG element to symbol element
