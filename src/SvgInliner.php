@@ -86,7 +86,7 @@ class SvgInliner {
 	 * render a single SVG
 	 *
 	 * @param string $content SVG content
-	 * @return array $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
+	 * @param array $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
 	 */
 	public function renderSVG($content, array $options = []) {
 		$options = $this->processOptions($options);
