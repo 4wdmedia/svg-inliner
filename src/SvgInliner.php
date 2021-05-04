@@ -213,6 +213,15 @@ class SvgInliner {
 		if ($from->hasAttribute('preserveAspectRatio')) {
 			$to->setAttribute('preserveAspectRatio', $from->getAttribute('preserveAspectRatio'));
 		}
+
+		$to->setAttribute('role', 'img');
+		$to->setAttribute('aria-hidden', 'true');
+
+		if (isset($options['attributes']) && is_array($options['attributes'])) {
+			foreach ($options['attributes'] as $attribute => $value) {
+				$to->setAttribute($attribute, $value);
+			}
+		}
 	}
 
 	/**
