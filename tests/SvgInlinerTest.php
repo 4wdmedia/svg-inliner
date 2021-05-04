@@ -22,7 +22,7 @@ class SvgInlinerTest extends TestCase {
 		]);
 
 		$svgWithShortCloseTag = '<svg xmlns="http://www.w3.org/2000/svg"><g/></svg>';
-		$expected = '<svg class="svg"><g></g></svg>';
+		$expected = '<svg class="svg" role="img" aria-hidden="true"><g></g></svg>';
 		$processedSvg = $svgInliner->renderSVG($svgWithShortCloseTag, ['identifier' => 'testcase']);
 		$this->assertEquals($expected, $processedSvg);
 	}
@@ -114,7 +114,7 @@ class SvgInlinerTest extends TestCase {
 		]);
 
 		$externalSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><g id="main"/></svg>';
-		$expected = '<svg class="svg" viewBox="0 0 50 50"><use xlink:href="/static/test.svg?db12e4dd#main"></use></svg>';
+		$expected = '<svg class="svg" viewBox="0 0 50 50" role="img" aria-hidden="true"><use xlink:href="/static/test.svg?db12e4dd#main"></use></svg>';
 		$processedSvg = $svgInliner->renderSVG($externalSvg, [
 			'identifier' => 'testcase',
 			'external' => true,
@@ -135,7 +135,7 @@ class SvgInlinerTest extends TestCase {
 		]);
 
 		$externalSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><g id="main"/><g id="second-main" /></svg>';
-		$expected = '<svg class="svg" viewBox="0 0 50 50"><use xlink:href="/static/test.svg?cache-buster#second-main"></use></svg>';
+		$expected = '<svg class="svg" viewBox="0 0 50 50" role="img" aria-hidden="true"><use xlink:href="/static/test.svg?cache-buster#second-main"></use></svg>';
 		$processedSvg = $svgInliner->renderSVG($externalSvg, [
 			'identifier' => 'testcase',
 			'external' => true,
