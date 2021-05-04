@@ -4,8 +4,8 @@ namespace Vierwd\SvgInliner\Tests;
 
 use Exception;
 use GlobIterator;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Error\Warning;
+use PHPUnit\Framework\TestCase;
 use Vierwd\SvgInliner\SvgInliner;
 
 class SvgInlinerTest extends TestCase {
@@ -14,6 +14,7 @@ class SvgInlinerTest extends TestCase {
 	 * test if SVG gets transformed to SVG without short-close tags
 	 *
 	 * @test
+	 * @return void
 	 */
 	public function testShortCloseTags() {
 		$svgInliner = new SvgInliner([
@@ -30,9 +31,11 @@ class SvgInlinerTest extends TestCase {
 	 * test various files. Put test cases in Fixtures/Input and expected output in Fixtures/Expected
 	 *
 	 * @test
+	 * @return void
 	 */
 	public function testVariousFiles() {
 		foreach (new GlobIterator(__DIR__ . '/Fixtures/Input/*.svg') as $inputFile) {
+			/** @var \SplFileInfo $inputFile */
 			$inputFilename = $inputFile->getFilename();
 			$outputFile = __DIR__ . '/Fixtures/Expected/' . $inputFilename;
 
@@ -55,6 +58,7 @@ class SvgInlinerTest extends TestCase {
 	 * test if there is an exception when files with duplicate id-attributes are rendered
 	 *
 	 * @test
+	 * @return void
 	 */
 	public function testDuplicateIds() {
 		if (!class_exists(Warning::class)) {
@@ -78,6 +82,7 @@ class SvgInlinerTest extends TestCase {
 	 * test if there is an exception when the same file is rendered twice
 	 *
 	 * @test
+	 * @return void
 	 */
 	public function testDuplicateIdsWithSameFile() {
 		if (!class_exists(Warning::class)) {
@@ -101,6 +106,7 @@ class SvgInlinerTest extends TestCase {
 	 * test inclusion of SVG as external file (with use-tag)
 	 *
 	 * @test
+	 * @return void
 	 */
 	public function testExternal() {
 		$svgInliner = new SvgInliner([
@@ -121,6 +127,7 @@ class SvgInlinerTest extends TestCase {
 	 * test inclusion of SVG as external file (with use-tag)
 	 *
 	 * @test
+	 * @return void
 	 */
 	public function testExternalWithCustomUrl() {
 		$svgInliner = new SvgInliner([
@@ -141,6 +148,7 @@ class SvgInlinerTest extends TestCase {
 	 * test inclusion of SVG as external file (with use-tag)
 	 *
 	 * @test
+	 * @return void
 	 */
 	public function testExternalWithoutID() {
 		$svgInliner = new SvgInliner([
@@ -148,6 +156,7 @@ class SvgInlinerTest extends TestCase {
 		]);
 
 		$externalSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><g /></svg>';
+		// phpcs:ignore SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly
 		$this->expectException(Exception::class);
 		$svgInliner->renderSVG($externalSvg, [
 			'identifier' => 'testcase',

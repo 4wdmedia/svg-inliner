@@ -3,6 +3,7 @@
 namespace Vierwd\SvgInliner;
 
 use DOMDocument;
+use DOMElement;
 use DOMNode;
 use DOMXPath;
 use Exception;
@@ -17,22 +18,25 @@ class SvgInliner {
 	/**
 	 * list of all identifiers of used SVGs.
 	 * The identifier is the filename as lowercase without special characters.
-	 * @var array
+	 * @var array<string, DOMElement>
 	 */
 	protected $usedSvgs = [];
 
 	/**
 	 * list of all id-attributes used in all SVGs
-	 * @var array
+	 * @var array<string>
 	 */
 	protected $usedIDs = [];
 
 	/**
 	 * default options. available keys are excludeFromConcatenation, ignoreDuplicateIds, removeComments
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	protected $defaultOptions = [];
 
+	/**
+	 * @param array<string, mixed> $defaultOptions
+	 */
 	public function __construct(array $defaultOptions = []) {
 		$this->defaultOptions = $defaultOptions;
 
@@ -45,13 +49,14 @@ class SvgInliner {
 	/**
 	 * get the rendered full SVG. This is an SVG containing many symbol-elements to reduce
 	 * repetition of same SVG code
+	 * @return string
 	 */
 	public function renderFullSVG() {
-		if (!$this->fullSvg->documentElement->childNodes->length) {
+		if (!$this->fullSvg->documentElement || !$this->fullSvg->documentElement->childNodes->length) {
 			return '';
 		}
 
-		return $this->fullSvg->saveXml($this->fullSvg->documentElement, LIBXML_NOEMPTYTAG);
+		return $this->fullSvg->saveXML($this->fullSvg->documentElement, LIBXML_NOEMPTYTAG) ?: '';
 	}
 
 	/**
@@ -59,9 +64,10 @@ class SvgInliner {
 	 * disk again
 	 *
 	 * @param string $fileName path to file
-	 * @param array $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
+	 * @param array<string, mixed> $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
+	 * @return string
 	 */
-	public function renderSVGFile($fileName, array $options = []) {
+	public function renderSVGFile(string $fileName, array $options = []) {
 		if (!file_exists($fileName)) {
 			return '';
 		}
@@ -73,7 +79,11 @@ class SvgInliner {
 		}
 
 		if (!isset($this->usedSvgs[$options['identifier']])) {
-			$content = trim(file_get_contents($fileName));
+			$content = file_get_contents($fileName);
+			if ($content === false) {
+				throw new \Exception('Could not read SVG file: ' . $fileName, 1620197744);
+			}
+			$content = trim($content);
 			$symbol = $this->processSVG($content, $options);
 		} else {
 			$symbol = $this->usedSvgs[$options['identifier']];
@@ -86,9 +96,10 @@ class SvgInliner {
 	 * render a single SVG
 	 *
 	 * @param string $content SVG content
-	 * @param array $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
+	 * @param array<string, mixed> $options are identifier, width, height, class, excludeFromConcatenation, ignoreDuplicateIds, removeComments
+	 * @return string
 	 */
-	public function renderSVG($content, array $options = []) {
+	public function renderSVG(string $content, array $options = []) {
 		$options = $this->processOptions($options);
 
 		$identifier = isset($options['identifier']) ? (string)$options['identifier'] : md5($content);
@@ -102,6 +113,10 @@ class SvgInliner {
 		return $this->renderSymbol($symbol, $options);
 	}
 
+	/**
+	 * @param array<string, mixed> $options
+	 * @return array<string, mixed>
+	 */
 	protected function processOptions(array $options = []) {
 		$options = $options + $this->defaultOptions;
 
@@ -116,7 +131,8 @@ class SvgInliner {
 
 	/**
 	 * @param DOMNode $symbol
-	 * @param array $options
+	 * @param array<string, mixed> $options
+	 * @return string
 	 */
 	protected function renderSymbol(DOMNode $symbol, array $options) {
 		$identifier = $options['identifier'];
@@ -125,8 +141,12 @@ class SvgInliner {
 			$this->checkForDuplicateId($identifier, $symbol);
 		}
 
-		if (!$options['excludeFromConcatenation'] && !$options['external']) {
+		if ($this->fullSvg->documentElement && !$options['excludeFromConcatenation'] && !$options['external']) {
 			$this->fullSvg->documentElement->appendChild($symbol);
+		}
+
+		if (!$symbol->ownerDocument) {
+			throw new \Exception('Missing ownerDocument', 1620144886);
 		}
 
 		$document = new DOMDocument();
@@ -139,18 +159,22 @@ class SvgInliner {
 			}
 			$url = $options['url'];
 			$urlParts = parse_url($url);
+			if ($urlParts === false) {
+				throw new \Exception('Could not parse URL: ' . $url, 1620197783);
+			}
 			if (empty($urlParts['fragment'])) {
 				// get the fragment
 				$XPath = new DOMXPath($symbol->ownerDocument);
 				$ids = $XPath->query('./*[@id]/@id', $symbol);
-				if (!$ids->length) {
+				if ($ids === false || !$ids->length) {
 					throw new \Exception('No fragment set. When using the `external` option, either provide a URL fragment or set an ID within the SVG', 1556092343);
 				}
-				$urlParts['fragment'] = (string)$ids->item(0)->nodeValue;
+				$item = $ids->item(0);
+				$urlParts['fragment'] = $item ? (string)$item->nodeValue : '';
 			}
 			if (empty($urlParts['query'])) {
 				// generate a cache buster
-				$urlParts['query'] = substr(md5($symbol->ownerDocument->saveXML($symbol)), 0, 8);
+				$urlParts['query'] = substr(md5($symbol->ownerDocument->saveXML($symbol) ?: ''), 0, 8);
 			}
 			$url = $this->buildUrl($urlParts);
 			$use = $document->createElement('use');
@@ -167,7 +191,7 @@ class SvgInliner {
 				$svg->appendChild($child);
 			}
 
-			foreach ($symbol->attributes as $name => $value) {
+			foreach ($symbol->attributes ?? [] as $name => $value) {
 				// copy attributes of SVG element to symbol element
 				if ($name !== 'xmlns' && $name !== 'id') {
 					$svg->setAttribute($name, $value->nodeValue);
@@ -175,10 +199,12 @@ class SvgInliner {
 			}
 		}
 
-		$this->setAttributes($symbol, $svg, $options);
+		if ($symbol instanceof DOMElement && $svg instanceof DOMElement) {
+			$this->setAttributes($symbol, $svg, $options);
+		}
 
 		// make sure there are no short-tags
-		$value = $document->saveXml($document->documentElement, LIBXML_NOEMPTYTAG);
+		$value = $document->saveXML($document->documentElement, LIBXML_NOEMPTYTAG) ?: '';
 		$svgWithNamespace = '<svg xmlns="http://www.w3.org/2000/svg"';
 		if (substr($value, 0, strlen($svgWithNamespace)) === $svgWithNamespace) {
 			$value = '<svg' . substr($value, strlen($svgWithNamespace));
@@ -189,8 +215,10 @@ class SvgInliner {
 
 	/**
 	 * copy or set attributes from one SVG onto another
+	 * @param array<string, mixed> $options
+	 * @return void
 	 */
-	protected function setAttributes(DOMNode $from, DOMNode $to, array $options) {
+	protected function setAttributes(DOMElement $from, DOMElement $to, array $options) {
 		$width = isset($options['width']) ? (int)$options['width'] : 0;
 		$height = isset($options['height']) ? (int)$options['height'] : 0;
 		$class = isset($options['class']) ? (string)$options['class'] : '';
@@ -202,10 +230,10 @@ class SvgInliner {
 		$to->setAttribute('class', implode(' ', $classes));
 
 		if ($width || $from->hasAttribute('width')) {
-			$to->setAttribute('width', $width ?: $from->getAttribute('width'));
+			$to->setAttribute('width', (string)$width ?: $from->getAttribute('width'));
 		}
 		if ($height || $from->hasAttribute('height')) {
-			$to->setAttribute('height', $height ?: $from->getAttribute('height'));
+			$to->setAttribute('height', (string)$height ?: $from->getAttribute('height'));
 		}
 		if ($from->hasAttribute('viewBox')) {
 			$to->setAttribute('viewBox', $from->getAttribute('viewBox'));
@@ -225,10 +253,9 @@ class SvgInliner {
 	}
 
 	/**
-	 * @param string $content
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 */
-	protected function processSVG($content, array $options) {
+	protected function processSVG(string $content, array $options): DOMElement {
 		$identifier = $options['identifier'];
 
 		$document = new DOMDocument();
@@ -237,38 +264,44 @@ class SvgInliner {
 			throw new Exception('Could not load SVG: ' . $identifier, 1533914743);
 		}
 
+		/** @var DOMElement $documentElement */
+		$documentElement = $document->documentElement;
+
 		// convert fill="transparent" to fill="none"
 		$XPath = new DOMXPath($document);
-		$transparentFill = $XPath->query('//*[@fill="transparent"]');
+		$transparentFill = $XPath->query('//*[@fill="transparent"]') ?: [];
 		foreach ($transparentFill as $node) {
+			/** @var DOMElement $node */
 			$node->setAttribute('fill', 'none');
 		}
 
 		// Remove comments within SVG
 		if ($options['removeComments']) {
 			$XPath = new DOMXPath($document);
-			$comments = $XPath->query('//comment()');
+			$comments = $XPath->query('//comment()') ?: [];
 			foreach ($comments as $comment) {
-				$comment->parentNode->removeChild($comment);
+				if ($comment->parentNode) {
+					$comment->parentNode->removeChild($comment);
+				}
 			}
 		}
 
 		// always add "svg" class to the root element
-		if ($document->documentElement->hasAttribute('class')) {
-			$document->documentElement->setAttribute('class', $document->documentElement->getAttribute('class') . ' svg');
+		if ($documentElement->hasAttribute('class')) {
+			$documentElement->setAttribute('class', $documentElement->getAttribute('class') . ' svg');
 		} else {
-			$document->documentElement->setAttribute('class', 'svg');
+			$documentElement->setAttribute('class', 'svg');
 		}
 
 		$symbol = $this->fullSvg->createElement('symbol');
-		foreach ($document->documentElement->attributes as $name => $value) {
+		foreach ($documentElement->attributes ?? [] as $name => $value) {
 			// copy attributes of SVG element to symbol element
 			if ($name !== 'xmlns') {
 				$symbol->setAttribute($name, $value->nodeValue);
 			}
 		}
 		$symbol->setAttribute('id', $identifier);
-		foreach ($document->documentElement->childNodes as $child) {
+		foreach ($documentElement->childNodes as $child) {
 			$child = $this->fullSvg->importNode($child, true);
 			$symbol->appendChild($child);
 		}
@@ -278,9 +311,15 @@ class SvgInliner {
 		return $symbol;
 	}
 
-	protected function checkForDuplicateId($identifier, DOMNode $contextNode) {
+	/**
+	 * @return void
+	 */
+	protected function checkForDuplicateId(string $identifier, DOMNode $contextNode) {
+		if (!$contextNode->ownerDocument) {
+			throw new \Exception('Missing ownerDocument', 1620145235);
+		}
 		$XPath = new DOMXPath($contextNode->ownerDocument);
-		$ids = $XPath->query('.//*[@id]/@id', $contextNode);
+		$ids = $XPath->query('.//*[@id]/@id', $contextNode) ?: [];
 		foreach ($ids as $id) {
 			if (isset($this->usedIDs[$id->nodeValue])) {
 				trigger_error('Duplicate ID within embedded SVG ' . $identifier . '. If this is intentional, add ignoreDuplicateIds=1', E_USER_WARNING);
@@ -290,6 +329,10 @@ class SvgInliner {
 		}
 	}
 
+	/**
+	 * @param array<string, mixed> $urlParts
+	 * @return string
+	 */
 	protected function buildUrl(array $urlParts) {
 		// https://www.php.net/manual/en/function.parse-url.php#106731
 		$scheme   = isset($urlParts['scheme']) ? $urlParts['scheme'] . '://' : '';
