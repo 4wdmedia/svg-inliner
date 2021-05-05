@@ -1,11 +1,8 @@
 language: php
 
 php:
-  - 5.6
-  - 7.0
   - 7.2
-
-sudo: false
+  - 7.4
 
 cache:
   directories:
@@ -17,7 +14,6 @@ before_install:
   - composer --version
 
 install:
-  - if [[ "$PHP" != "7.2" ]]; then composer remove --dev "friendsofphp/php-cs-fixer" "vierwd/coding-standard" "dealerdirect/phpcodesniffer-composer-installer"; fi
   - composer install
 
 script:
@@ -25,6 +21,8 @@ script:
 
   - >
     echo "Running php lint";
-    find src tests -name \*.php | xargs grep --files-without-match --regexp '<\?php // PHP\s*7\.[3-9]' | xargs -I % php -d display_errors=stderr -l % > /dev/null ;
+    find src tests -name \*.php | xargs -I % php -d display_errors=stderr -l % > /dev/null ;
 
-  - if [[ "$PHP" == "7.2" ]]; then vendor/bin/phpcs --runtime-set ignore_warnings_on_exit 1 --standard=vendor/vierwd/coding-standard/ForwardMedia src tests; fi
+  - vendor/bin/phpcs --runtime-set ignore_warnings_on_exit 1 --standard=vendor/vierwd/coding-standard/ForwardMedia src tests
+
+  - vendor/bin/phpstan analyze
