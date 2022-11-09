@@ -164,4 +164,5 @@ class SvgInlinerTest extends TestCase {
 			'url' => '/static/test.svg',
 		]);
 	}
+
 }
