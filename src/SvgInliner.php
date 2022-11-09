@@ -255,6 +255,7 @@ class SvgInliner {
 	 */
 	protected function processSVG(string $content, array $options): DOMElement {
 		$identifier = $options['identifier'];
+		assert(is_string($identifier));
 
 		$document = new DOMDocument();
 

@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "php": ">=7.2.0"
+        "php": ">=7.4.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^4.8 | ^5.7 | ^6.5",
@@ -26,7 +26,7 @@
         "vierwd/coding-standard": "^1.0",
         "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
         "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan": "^0.12.85"
+        "phpstan/phpstan": "^1.1.0"
     },
     "autoload": {
         "psr-4": {
