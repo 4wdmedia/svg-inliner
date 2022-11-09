@@ -10,9 +10,7 @@ use Exception;
 
 class SvgInliner {
 
-	/**
-	 * @var DOMDocument
-	 */
+	/** @var DOMDocument */
 	protected $fullSvg;
 
 	/**
@@ -118,7 +116,7 @@ class SvgInliner {
 	 * @return array<string, mixed>
 	 */
 	protected function processOptions(array $options = []) {
-		$options = $options + $this->defaultOptions;
+		$options += $this->defaultOptions;
 
 		// ensure some options are booleans
 		$options['external'] = !empty($options['external']);
@@ -346,4 +344,5 @@ class SvgInliner {
 		$fragment = isset($urlParts['fragment']) ? '#' . $urlParts['fragment'] : '';
 		return "$scheme$user$pass$host$port$path$query$fragment";
 	}
+
 }
