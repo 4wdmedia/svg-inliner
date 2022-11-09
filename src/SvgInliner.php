@@ -32,6 +32,8 @@ class SvgInliner {
 	 */
 	protected $defaultOptions = [];
 
+	private static ?SvgInliner $instance = null;
+
 	/**
 	 * @param array<string, mixed> $defaultOptions
 	 */
@@ -42,6 +44,14 @@ class SvgInliner {
 		$svg = $this->fullSvg->createElementNs('http://www.w3.org/2000/svg', 'svg');
 		$svg->setAttribute('hidden', 'hidden');
 		$this->fullSvg->appendChild($svg);
+	}
+
+	public static function getInstance(): self {
+		if (self::$instance === null) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
 	}
 
 	/**
