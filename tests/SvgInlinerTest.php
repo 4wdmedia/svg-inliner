@@ -4,7 +4,6 @@ namespace Vierwd\SvgInliner\Tests;
 
 use Exception;
 use GlobIterator;
-use PHPUnit\Framework\Error\Warning;
 use PHPUnit\Framework\TestCase;
 use Vierwd\SvgInliner\SvgInliner;
 
@@ -61,12 +60,6 @@ class SvgInlinerTest extends TestCase {
 	 * @return void
 	 */
 	public function testDuplicateIds() {
-		if (!class_exists(Warning::class)) {
-			// older PHPUnit
-			$this->markTestSkipped('Warning can not be catched');
-			return;
-		}
-
 		$svgInliner = new SvgInliner([
 			'excludeFromConcatenation' => true,
 		]);
@@ -85,12 +78,6 @@ class SvgInlinerTest extends TestCase {
 	 * @return void
 	 */
 	public function testDuplicateIdsWithSameFile() {
-		if (!class_exists(Warning::class)) {
-			// older PHPUnit
-			$this->markTestSkipped('Warning can not be catched');
-			return;
-		}
-
 		$svgInliner = new SvgInliner([
 			'excludeFromConcatenation' => true,
 		]);
